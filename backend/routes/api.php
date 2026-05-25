@@ -15,4 +15,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('documents', DocumentController::class)
         ->only(['index', 'store', 'show', 'destroy']);
+    Route::get('/documents/{document}/preview', [DocumentController::class, 'preview']);
 });

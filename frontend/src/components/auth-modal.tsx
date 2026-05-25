@@ -12,9 +12,10 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: Mode;
+  onSuccess?: () => void;
 }
 
-export function AuthModal({ isOpen, onClose, initialMode = "login" }: Props) {
+export function AuthModal({ isOpen, onClose, initialMode = "login", onSuccess }: Props) {
   const [view, setView] = useState<Mode>(initialMode);
   const [phase, setPhase] = useState<Phase>("shown");
   const [showPass, setShowPass] = useState(false);
@@ -110,6 +111,7 @@ export function AuthModal({ isOpen, onClose, initialMode = "login" }: Props) {
       await login(lEmail, lPass);
       toast.success("Bem-vindo de volta!");
       onClose();
+      onSuccess?.();
     } catch (err) {
       toast.error(
         isAxiosError(err) ? (err.response?.data?.message ?? "Credenciais inválidas.") : "Algo deu errado.",
@@ -127,6 +129,7 @@ export function AuthModal({ isOpen, onClose, initialMode = "login" }: Props) {
       await register(rName, rEmail, rPass, rPassConf);
       toast.success("Conta criada! Bem-vindo ao StudyFlow.");
       onClose();
+      onSuccess?.();
     } catch (err) {
       if (isAxiosError(err)) {
         const d = err.response?.data;
@@ -167,6 +170,7 @@ export function AuthModal({ isOpen, onClose, initialMode = "login" }: Props) {
 
       {/* Centering shell */}
       <div
+        onClick={onClose}
         style={{
           position: "fixed", inset: 0, zIndex: 50,
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -176,6 +180,7 @@ export function AuthModal({ isOpen, onClose, initialMode = "login" }: Props) {
       >
         {/* Outer card — handles open/close animation */}
         <div
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: "relative",
             width: "100%", maxWidth: 420,

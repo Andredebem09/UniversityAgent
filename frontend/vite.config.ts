@@ -19,7 +19,12 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": { target: "http://localhost:8989", changeOrigin: true },
+      "/api": {
+        target: "http://localhost:8989",
+        changeOrigin: true,
+        proxyTimeout: 130_000,
+        timeout: 130_000,
+      },
     },
   },
 });

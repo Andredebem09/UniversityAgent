@@ -41,7 +41,7 @@ class DocumentController extends Controller
 
         ProcessDocument::dispatch($document);
 
-        return response()->json($document, 201);
+        return response()->json($document->refresh(), 201);
     }
 
     public function show(Request $request, Document $document): JsonResponse
@@ -51,6 +51,31 @@ class DocumentController extends Controller
         }
 
         return response()->json($document);
+    }
+
+    public function preview(Request $request, Document $document): \Illuminate\Http\Response
+    {
+        if ($document->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $path = $document->storage_path;
+
+        if (!Storage::disk('local')->exists($path)) {
+            abort(404);
+        }
+
+        $mime = match ($document->file_type) {
+            'pdf'  => 'application/pdf',
+            'txt'  => 'text/plain; charset=utf-8',
+            default => 'application/octet-stream',
+        };
+
+        return response(Storage::disk('local')->get($path), 200, [
+            'Content-Type'        => $mime,
+            'Content-Disposition' => 'inline; filename="' . $document->original_filename . '"',
+            'Cache-Control'       => 'no-store',
+        ]);
     }
 
     public function destroy(Request $request, Document $document): JsonResponse
