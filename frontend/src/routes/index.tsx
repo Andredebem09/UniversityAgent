@@ -1,11 +1,29 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Brain, ChevronRight, Flame, Calendar, CheckCircle2, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Brain, ChevronRight, LogOut } from "lucide-react";
 import heroImg from "@/assets/study-hero.jpg";
 import { AuthModal } from "@/components/auth-modal";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+
+function useCountUp(target: number, decimals = 0, duration = 1600) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    let raf: number;
+    let startTime: number | null = null;
+    const tick = (ts: number) => {
+      if (!startTime) startTime = ts;
+      const p = Math.min((ts - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setValue(parseFloat((eased * target).toFixed(decimals)));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return value;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,24 +35,15 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-
-const tasks = [
-  { id: 1, title: "Revisar cálculo integral", subject: "Matemática", done: false },
-  { id: 2, title: "Exercícios de cinemática", subject: "Física", done: true },
-  { id: 3, title: "Projeto React + TypeScript", subject: "Programação", done: false },
-  { id: 4, title: "Resumo Revolução Francesa", subject: "História", done: false },
-];
-
 function Index() {
-  const [todos, setTodos] = useState(tasks);
-  const [streak] = useState(12);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"login" | "register">("login");
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const countStudents = useCountUp(120);
+  const countRating = useCountUp(4.9, 1);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // já logado → vai direto para /documents
   if (user) { navigate({ to: "/documents" }); }
 
   function openLogin() { setModalMode("login"); setModalOpen(true); }
@@ -51,15 +60,16 @@ function Index() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 glass">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="flex items-center gap-2"
+          >
             <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <Brain className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold tracking-tight">StudyFlow</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a className="hover:text-foreground transition-smooth" href="#dashboard">Dashboard</a>
-          </div>
+          </button>
+          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground" />
           {user ? (
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground hidden md:block">
@@ -88,9 +98,8 @@ function Index() {
         <div className="max-w-7xl mx-auto px-6 pt-20 pb-32 grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm">
-              <Flame className="w-4 h-4 text-accent" />
-              <span className="text-muted-foreground">Sequência de</span>
-              <span className="font-bold text-accent">{streak} dias</span>
+              <span className="text-muted-foreground">Resumos com</span>
+              <span className="font-bold text-accent">IA</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-bold leading-[1.05]">
               Estude com <span className="text-gradient">foco</span>,
@@ -105,16 +114,8 @@ function Index() {
               </button>
             </div>
             <div className="flex items-center gap-8 pt-4">
-              {[
-                { n: "120K+", l: "Estudantes" },
-                { n: "4.9★", l: "Avaliação" },
-                { n: "98%", l: "Aprovação" },
-              ].map((s) => (
-                <div key={s.l}>
-                  <div className="text-2xl font-bold text-gradient">{s.n}</div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider">{s.l}</div>
-                </div>
-              ))}
+              <StatCounter value={countStudents} label="Estudantes" format={(v) => `${v}K+`} />
+              <StatCounter value={countRating}   label="Avaliação"  format={(v) => `${v.toFixed(1)}★`} />
             </div>
           </div>
           <div className="relative">
@@ -168,6 +169,15 @@ function Index() {
         onConfirm={confirmAndLogout}
         onCancel={() => setConfirmLogout(false)}
       />
+    </div>
+  );
+}
+
+function StatCounter({ value, label, format }: { value: number; label: string; format: (v: number) => string }) {
+  return (
+    <div>
+      <div className="text-2xl font-bold text-gradient">{format(value)}</div>
+      <div className="text-xs text-muted-foreground uppercase tracking-wider">{label}</div>
     </div>
   );
 }
