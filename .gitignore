@@ -1,0 +1,48 @@
+# Dependencies
+frontend/node_modules/
+backend/vendor/
+
+# Build outputs
+frontend/dist/
+frontend/.vite/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Docker — use docker-compose.example.yml como referência
+docker-compose.yml
+docker-compose.override.yml
+
+# Logs
+storage/logs/*.log
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Laravel specific
+backend/bootstrap/cache/*.php
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+storage/app/public/
+
+# Skills/internal tooling
+skills/
+claude-code/
+.claude/
